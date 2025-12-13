@@ -1,4 +1,4 @@
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,7 +11,7 @@ import java.util.Queue;
  * 
  * <p>Цей клас служить центральною точкою для демонстрації операцій з різними
  * колекціями Java: List, Queue та Set. Він об'єднує функціональність всіх
- * спеціалізованих класів для комплексного аналізу даних LocalDateTime.</p>
+ * спеціалізованих класів для комплексного аналізу даних LocalTime.</p>
  * 
  * <p>Основні можливості:</p>
  * <ul>
@@ -32,10 +32,10 @@ import java.util.Queue;
  * </pre>
  */
 public class BasicDataOperation {
-    static final String PATH_TO_DATA_FILE = "list/LocalDateTime.data";
+    static final String PATH_TO_DATA_FILE = "list/LocalTime.data";
 
-    LocalDateTime dateTimeValueToSearch;
-    LocalDateTime[] dateTimeArray;
+    LocalTime localTimeValueToSearch;
+    LocalTime[] localTimeArray;
 
     private static final String SEPARATOR = "\n" + "=".repeat(80) + "\n";
     private static final String USAGE_MESSAGE = "Використання: java BasicDataOperation <пошукове-значення> \n" +
@@ -52,7 +52,7 @@ public class BasicDataOperation {
 
         // Валідація введеного значення дати
         try {
-            LocalDateTime.parse(searchValue, DateTimeFormatter.ISO_DATE_TIME);
+            LocalTime.parse(searchValue, DateTimeFormatter.ISO_TIME);
         } catch (Exception e) {
             System.out.println("Помилка: Невірний формат дати-часу. Використовуйте ISO формат (наприклад: 2024-03-16T00:12:38Z)");
             return;
@@ -69,13 +69,13 @@ public class BasicDataOperation {
      */
     private void executeOperations(String[] args) {
         System.out.println(SEPARATOR);
-        System.out.println("🚀 РОЗПОЧАТО АНАЛІЗ ДАНИХ LocalDateTime 🚀");
+        System.out.println("🚀 РОЗПОЧАТО АНАЛІЗ ДАНИХ LocalTime 🚀");
         System.out.println("Пошуковий параметр: " + args[0]);
         System.out.println(SEPARATOR);
         
         // Підготовка даних та перевірка формату
-        dateTimeValueToSearch = LocalDateTime.parse(args[0], DateTimeFormatter.ISO_DATE_TIME);
-        dateTimeArray = DataFileHandler.loadArrayFromFile(PATH_TO_DATA_FILE);
+        localTimeValueToSearch = LocalTime.parse(args[0], DateTimeFormatter.ISO_TIME);
+        localTimeArray = DataFileHandler.loadArrayFromFile(PATH_TO_DATA_FILE);
         
         runAllOperations();
 
@@ -95,7 +95,7 @@ public class BasicDataOperation {
         
         try {
             // Створення екземпляру класу з передаванням даних
-            BasicDataOperationUsingList listProcessor = new BasicDataOperationUsingList(dateTimeValueToSearch, dateTimeArray);
+            BasicDataOperationUsingList listProcessor = new BasicDataOperationUsingList(localTimeValueToSearch, localTimeArray);
             listProcessor.executeDataOperations();
         } catch (Exception e) {
             System.out.println("❌ Помилка при роботі з List: " + e.getMessage());
@@ -114,7 +114,7 @@ public class BasicDataOperation {
         
         try {
             // Створення екземпляру класу з передаванням даних
-            BasicDataOperationUsingQueue queueProcessor = new BasicDataOperationUsingQueue(dateTimeValueToSearch, dateTimeArray);
+            BasicDataOperationUsingQueue queueProcessor = new BasicDataOperationUsingQueue(localTimeValueToSearch, localTimeArray);
             queueProcessor.runDataProcessing();
         } catch (Exception e) {
             System.out.println("❌ Помилка при роботі з Queue: " + e.getMessage());
@@ -133,7 +133,7 @@ public class BasicDataOperation {
         
         try {
             // Створення екземпляру класу з передаванням даних           
-            BasicDataOperationUsingSet setProcessor = new BasicDataOperationUsingSet(dateTimeValueToSearch, dateTimeArray);
+            BasicDataOperationUsingSet setProcessor = new BasicDataOperationUsingSet(localTimeValueToSearch, localTimeArray);
             setProcessor.executeDataAnalysis();
         } catch (Exception e) {
             System.out.println("❌ Помилка при роботі з Set: " + e.getMessage());
