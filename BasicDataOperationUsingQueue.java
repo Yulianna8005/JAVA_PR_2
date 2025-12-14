@@ -125,11 +125,11 @@ public class BasicDataOperationUsingQueue {
      * Здійснює пошук конкретного значення в черзі дати та часу.
      */
     private void findInQueue() {
-        // вимірюємо час пошуку в черзі
         long timeStart = System.nanoTime();
-
-        boolean elementExists = this.localTimeQueue.contains(localTimeValueToSearch);
-
+        
+        boolean elementExists = localTimeQueue.stream()
+            .anyMatch(dateTime -> dateTime.equals(localTimeValueToSearch));
+        
         PerformanceTracker.displayOperationTime(timeStart, "пошук елемента в Queue дати i часу");
 
         if (elementExists) {
@@ -148,11 +148,15 @@ public class BasicDataOperationUsingQueue {
             return;
         }
 
-        // відстежуємо час пошуку граничних значень
         long timeStart = System.nanoTime();
 
-        LocalTime minValue = Collections.min(localTimeQueue);
-        LocalTime maxValue = Collections.max(localTimeQueue);
+        LocalTime minValue = localTimeQueue.stream()
+            .min(LocalTime::compareTo)
+            .orElse(null);
+        
+        LocalTime maxValue = localTimeQueue.stream()
+            .max(LocalTime::compareTo)
+            .orElse(null);
 
         PerformanceTracker.displayOperationTime(timeStart, "визначення мiнiмальної i максимальної дати в Queue");
 

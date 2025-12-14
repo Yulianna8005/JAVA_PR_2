@@ -5,6 +5,7 @@ import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Клас BasicDataOperationUsingMap реалізує операції з колекціями типу Map для зберігання пар ключ-значення.
@@ -22,17 +23,17 @@ public class BasicDataOperationUsingMap {
     /**
      * Компаратор для сортування Map.Entry за значеннями String.
      */
-    static class OwnerValueComparator implements Comparator<Map.Entry<Ferret, String>> {
-        @Override
-        public int compare(Map.Entry<Ferret, String> e1, Map.Entry<Ferret, String> e2) {
-            String v1 = e1.getValue();
-            String v2 = e2.getValue();
-            if (v1 == null && v2 == null) return 0;
-            if (v1 == null) return -1;
-            if (v2 == null) return 1;
-            return v1.compareTo(v2);
-        }
-    }
+    // static class OwnerValueComparator implements Comparator<Map.Entry<Ferret, String>> {
+    //     @Override
+    //     public int compare(Map.Entry<Ferret, String> e1, Map.Entry<Ferret, String> e2) {
+    //         String v1 = e1.getValue();
+    //         String v2 = e2.getValue();
+    //         if (v1 == null && v2 == null) return 0;
+    //         if (v1 == null) return -1;
+    //         if (v2 == null) return 1;
+    //         return v1.compareTo(v2);
+    //     }
+    // }
 
     /**
      * Внутрішній клас Ferret для зберігання інформації про тхора.
@@ -198,9 +199,9 @@ public class BasicDataOperationUsingMap {
         System.out.println("\n=== Пари ключ-значення в Hashtable ===");
         long timeStart = System.nanoTime();
 
-        for (Map.Entry<Ferret, String> entry : hashtable.entrySet()) {
-            System.out.println("  " + entry.getKey() + " -> " + entry.getValue());
-        }
+        hashtable.entrySet().forEach(entry ->
+            System.out.println("  " + entry.getKey() + " -> " + entry.getValue())
+        );
 
         PerformanceTracker.displayOperationTime(timeStart, "виведення пари ключ-значення в Hashtable");
     }
@@ -208,15 +209,14 @@ public class BasicDataOperationUsingMap {
     private void sortHashtable() {
         long timeStart = System.nanoTime();
 
-        List<Ferret> sortedKeys = new ArrayList<>(hashtable.keySet());
-        Collections.sort(sortedKeys);
-        
-        Hashtable<Ferret, String> sortedHashtable = new Hashtable<>();
-        for (Ferret key : sortedKeys) {
-            sortedHashtable.put(key, hashtable.get(key));
-        }
-        
-        hashtable = sortedHashtable;
+        hashtable = hashtable.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (e1, e2) -> e1,
+                Hashtable::new
+            ));
 
         PerformanceTracker.displayOperationTime(timeStart, "сортування Hashtable за ключами");
     }
@@ -239,22 +239,14 @@ public class BasicDataOperationUsingMap {
     void findByValueInHashtable() {
         long timeStart = System.nanoTime();
 
-        List<Map.Entry<Ferret, String>> entries = new ArrayList<>(hashtable.entrySet());
-        OwnerValueComparator comparator = new OwnerValueComparator();
-        Collections.sort(entries, comparator);
+        Map.Entry<Ferret, String> foundEntry = hashtable.entrySet().stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue().equals(VALUE_TO_SEARCH_AND_DELETE))
+            .findFirst()
+            .orElse(null);
 
-        Map.Entry<Ferret, String> searchEntry = new Map.Entry<Ferret, String>() {
-            public Ferret getKey() { return null; }
-            public String getValue() { return VALUE_TO_SEARCH_AND_DELETE; }
-            public String setValue(String value) { return null; }
-        };
+        PerformanceTracker.displayOperationTime(timeStart, "пошук за значенням в Hashtable");
 
-        int position = Collections.binarySearch(entries, searchEntry, comparator);
-
-        PerformanceTracker.displayOperationTime(timeStart, "бінарний пошук за значенням в Hashtable");
-
-        if (position >= 0) {
-            Map.Entry<Ferret, String> foundEntry = entries.get(position);
+        if (foundEntry != null) {
             System.out.println("Власника '" + VALUE_TO_SEARCH_AND_DELETE + "' знайдено. Ferret: " + foundEntry.getKey());
         } else {
             System.out.println("Власник '" + VALUE_TO_SEARCH_AND_DELETE + "' відсутній в Hashtable.");
@@ -288,16 +280,12 @@ public class BasicDataOperationUsingMap {
     void removeByValueFromHashtable() {
         long timeStart = System.nanoTime();
 
-        List<Ferret> keysToRemove = new ArrayList<>();
-        for (Map.Entry<Ferret, String> entry : hashtable.entrySet()) {
-            if (entry.getValue() != null && entry.getValue().equals(VALUE_TO_SEARCH_AND_DELETE)) {
-                keysToRemove.add(entry.getKey());
-            }
-        }
+        List<Ferret> keysToRemove = hashtable.entrySet().stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue().equals(VALUE_TO_SEARCH_AND_DELETE))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
         
-        for (Ferret key : keysToRemove) {
-            hashtable.remove(key);
-        }
+        keysToRemove.forEach(hashtable::remove);
 
         PerformanceTracker.displayOperationTime(timeStart, "видалення за значенням з Hashtable");
 
@@ -308,11 +296,11 @@ public class BasicDataOperationUsingMap {
 
     private void printLinkedHashMap() {
         System.out.println("\n=== Пари ключ-значення в LinkedHashMap ===");
-
         long timeStart = System.nanoTime();
-        for (Map.Entry<Ferret, String> entry : linkedHashMap.entrySet()) {
-            System.out.println("  " + entry.getKey() + " -> " + entry.getValue());
-        }
+
+        linkedHashMap.entrySet().forEach(entry ->
+            System.out.println("  " + entry.getKey() + " -> " + entry.getValue())
+        );
 
         PerformanceTracker.displayOperationTime(timeStart, "виведення пар ключ-значення в LinkedHashMap");
     }
@@ -320,15 +308,14 @@ public class BasicDataOperationUsingMap {
     private void sortLinkedHashMap() {
         long timeStart = System.nanoTime();
 
-        List<Ferret> sortedKeys = new ArrayList<>(linkedHashMap.keySet());
-        Collections.sort(sortedKeys);
-        
-        LinkedHashMap<Ferret, String> sortedLinkedHashMap = new LinkedHashMap<>();
-        for (Ferret key : sortedKeys) {
-            sortedLinkedHashMap.put(key, linkedHashMap.get(key));
-        }
-        
-        linkedHashMap = sortedLinkedHashMap;
+        linkedHashMap = linkedHashMap.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (e1, e2) -> e1,
+                LinkedHashMap::new
+            ));
 
         PerformanceTracker.displayOperationTime(timeStart, "сортування LinkedHashMap за ключами");
     }
@@ -351,22 +338,14 @@ public class BasicDataOperationUsingMap {
     void findByValueInLinkedHashMap() {
         long timeStart = System.nanoTime();
 
-        List<Map.Entry<Ferret, String>> entries = new ArrayList<>(linkedHashMap.entrySet());
-        OwnerValueComparator comparator = new OwnerValueComparator();
-        Collections.sort(entries, comparator);
+        Map.Entry<Ferret, String> foundEntry = linkedHashMap.entrySet().stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue().equals(VALUE_TO_SEARCH_AND_DELETE))
+            .findFirst()
+            .orElse(null);
 
-        Map.Entry<Ferret, String> searchEntry = new Map.Entry<Ferret, String>() {
-            public Ferret getKey() { return null; }
-            public String getValue() { return VALUE_TO_SEARCH_AND_DELETE; }
-            public String setValue(String value) { return null; }
-        };
+        PerformanceTracker.displayOperationTime(timeStart, "пошук за значенням в LinkedHashMap");
 
-        int position = Collections.binarySearch(entries, searchEntry, comparator);
-
-        PerformanceTracker.displayOperationTime(timeStart, "бінарний пошук за значенням в LinkedHashMap");
-
-        if (position >= 0) {
-            Map.Entry<Ferret, String> foundEntry = entries.get(position);
+        if (foundEntry != null) {
             System.out.println("Власника '" + VALUE_TO_SEARCH_AND_DELETE + "' знайдено. Ferret: " + foundEntry.getKey());
         } else {
             System.out.println("Власник '" + VALUE_TO_SEARCH_AND_DELETE + "' відсутній в LinkedHashMap.");
@@ -400,22 +379,17 @@ public class BasicDataOperationUsingMap {
     void removeByValueFromLinkedHashMap() {
         long timeStart = System.nanoTime();
 
-        List<Ferret> keysToRemove = new ArrayList<>();
-        for (Map.Entry<Ferret, String> entry : linkedHashMap.entrySet()) {
-            if (entry.getValue() != null && entry.getValue().equals(VALUE_TO_SEARCH_AND_DELETE)) {
-                keysToRemove.add(entry.getKey());
-            }
-        }
+        List<Ferret> keysToRemove = linkedHashMap.entrySet().stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue().equals(VALUE_TO_SEARCH_AND_DELETE))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
         
-        for (Ferret key : keysToRemove) {
-            linkedHashMap.remove(key);
-        }
+        keysToRemove.forEach(linkedHashMap::remove);
 
         PerformanceTracker.displayOperationTime(timeStart, "видалення за значенням з LinkedHashMap");
 
         System.out.println("Видалено " + keysToRemove.size() + " записів з власником '" + VALUE_TO_SEARCH_AND_DELETE + "'");
     }
-
     /**
      * Головний метод для запуску програми.
      */

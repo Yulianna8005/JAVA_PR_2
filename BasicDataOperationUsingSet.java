@@ -122,9 +122,10 @@ public class BasicDataOperationUsingSet {
      */
     private void findInSet() {
         long timeStart = System.nanoTime();
-
-        boolean elementExists = this.dateTimeSet.contains(localTimeValueToSearch);
-
+        
+        boolean elementExists = dateTimeSet.stream()
+            .anyMatch(dateTime -> dateTime.equals(localTimeValueToSearch));
+        
         PerformanceTracker.displayOperationTime(timeStart, "пошук елемента в TreeSet дати i часу");
 
         if (elementExists) {
@@ -145,8 +146,13 @@ public class BasicDataOperationUsingSet {
 
         long timeStart = System.nanoTime();
 
-        LocalTime minValue = Collections.min(dateTimeSet);
-        LocalTime maxValue = Collections.max(dateTimeSet);
+        LocalTime minValue = dateTimeSet.stream()
+            .min(LocalTime::compareTo)
+            .orElse(null);
+        
+        LocalTime maxValue = dateTimeSet.stream()
+            .max(LocalTime::compareTo)
+            .orElse(null);
 
         PerformanceTracker.displayOperationTime(timeStart, "визначення мiнiмальної i максимальної дати в TreeSet");
 
@@ -157,22 +163,17 @@ public class BasicDataOperationUsingSet {
     /**
      * Аналізує та порівнює елементи масиву та множини.
      */
-    private void analyzeArrayAndSet() {
-        System.out.println("Кiлькiсть елементiв в масивi: " + localTimeArray.length);
-        System.out.println("Кiлькiсть елементiв в TreeSet: " + dateTimeSet.size());
+private void analyzeArrayAndSet() {
+    System.out.println("Кiлькiсть елементiв в масивi: " + localTimeArray.length);
+    System.out.println("Кiлькiсть елементiв в TreeSet: " + dateTimeSet.size());
 
-        boolean allElementsPresent = true;
-        for (LocalTime dateTimeElement : localTimeArray) {
-            if (!dateTimeSet.contains(dateTimeElement)) {
-                allElementsPresent = false;
-                break;
-            }
-        }
+    boolean allElementsPresent = Arrays.stream(localTimeArray)
+        .allMatch(dateTimeSet::contains);
 
-        if (allElementsPresent) {
-            System.out.println("Всi елементи масиву наявні в TreeSet.");
-        } else {
-            System.out.println("Не всi елементи масиву наявні в TreeSet.");
-        }
+    if (allElementsPresent) {
+        System.out.println("Всi елементи масиву наявні в TreeSet.");
+    } else {
+        System.out.println("Не всi елементи масиву наявні в TreeSet.");
     }
+}
 }
