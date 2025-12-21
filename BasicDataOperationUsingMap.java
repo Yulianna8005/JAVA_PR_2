@@ -23,119 +23,33 @@ public class BasicDataOperationUsingMap {
     /**
      * Компаратор для сортування Map.Entry за значеннями String.
      */
-    // static class OwnerValueComparator implements Comparator<Map.Entry<Ferret, String>> {
-    //     @Override
-    //     public int compare(Map.Entry<Ferret, String> e1, Map.Entry<Ferret, String> e2) {
-    //         String v1 = e1.getValue();
-    //         String v2 = e2.getValue();
-    //         if (v1 == null && v2 == null) return 0;
-    //         if (v1 == null) return -1;
-    //         if (v2 == null) return 1;
-    //         return v1.compareTo(v2);
-    //     }
-    // }
+    static class OwnerValueComparator implements Comparator<Map.Entry<Ferret, String>> {
+        @Override
+        public int compare(Map.Entry<Ferret, String> e1, Map.Entry<Ferret, String> e2) {
+            String v1 = e1.getValue();
+            String v2 = e2.getValue();
+            if (v1 == null && v2 == null) return 0;
+            if (v1 == null) return -1;
+            if (v2 == null) return 1;
+            return v1.compareTo(v2);
+        }
+    }
 
-    /**
+        /**
      * Внутрішній клас Ferret для зберігання інформації про тхора.
-     * 
+     * @param nickname
+     * @param foodRation
      * Реалізує Comparable<Ferret> для визначення природного порядку сортування.
      * Природний порядок: спочатку за кличкою (nickname) за зростанням, потім за раціоном (foodRation) за зростанням.
      */
-    public static class Ferret implements Comparable<Ferret> {
-        private final String nickname;
-        private final String foodRation;
-
-        public Ferret(String nickname) {
-            this.nickname = nickname;
-            this.foodRation = null;
-        }
-
-        public Ferret(String nickname, String foodRation) {
-            this.nickname = nickname;
-            this.foodRation = foodRation;
-        }
-
-        public String getNickname() { 
-            return nickname; 
-        }
-
-        public String getFoodRation() {
-            return foodRation;
-        }
-
-        /**
-         * Порівнює цей об'єкт Ferret з іншим для визначення порядку сортування.
-         * Природний порядок: спочатку за кличкою (nickname) за зростанням, потім за раціоном (foodRation) за зростанням.
-         * 
-         * @param other Ferret об'єкт для порівняння
-         * @return негативне число, якщо цей Ferret < other; 
-         *         0, якщо цей Ferret == other; 
-         *         позитивне число, якщо цей Ferret > other
-         */
-        @Override
-        public int compareTo(Ferret other) {
-            if (other == null) return 1;
-            
-            // Спочатку порівнюємо за кличкою (за зростанням)
-            int nicknameComparison = 0;
-            if (this.nickname == null && other.nickname == null) {
-                nicknameComparison = 0;
-            } else if (this.nickname == null) {
-                nicknameComparison = -1;
-            } else if (other.nickname == null) {
-                nicknameComparison = 1;
-            } else {
-                nicknameComparison = this.nickname.compareTo(other.nickname);
-            }
-            
-            // Якщо клички різні, повертаємо результат
-            if (nicknameComparison != 0) {
-                return nicknameComparison;
-            }
-            
-            // Якщо клички однакові, порівнюємо за раціоном (за зростанням)
-            if (this.foodRation == null && other.foodRation == null) return 0;
-            if (this.foodRation == null) return -1;
-            if (other.foodRation == null) return 1;
-            return this.foodRation.compareTo(other.foodRation);  // За зростанням
-        }
-
-        /**
-         * Перевіряє рівність цього Ferret з іншим об'єктом.
-         */
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            Ferret ferret = (Ferret) obj;
-            
-            boolean nicknameEquals = nickname != null ? nickname.equals(ferret.nickname) : ferret.nickname == null;
-            boolean foodRationEquals = foodRation != null ? foodRation.equals(ferret.foodRation) : ferret.foodRation == null;
-            
-            return nicknameEquals && foodRationEquals;
-        }
-
-        /**
-         * Повертає хеш-код для цього Ferret.
-         */
-        @Override
-        public int hashCode() {
-            int result = nickname != null ? nickname.hashCode() : 0;
-            result = 31 * result + (foodRation != null ? foodRation.hashCode() : 0);
-            return result;
-        }
-
-        /**
-         * Повертає строкове представлення Ferret.
-         */
-        @Override
-        public String toString() {
-            if (foodRation != null) {
-                return "Ferret{nickname='" + nickname + "', foodRation='" + foodRation + "', hashCode=" + hashCode() + "}";
-            }
-            return "Ferret{nickname='" + nickname + "', hashCode=" + hashCode() + "}";
-        }
-    }
+    public record Ferret(String nickname, String foodRation) {}
+    
+    /**
+     * Компаратор для порівняння об'єктів Ferret.
+     * Сортування: спочатку за кличкою (за зростанням), потім за раціоном (за спаданням).
+     */
+    private static final Comparator<Ferret> FERRET_COMPARATOR = 
+        Comparator.comparing(Ferret::nickname).thenComparing(Ferret::foodRation, Comparator.reverseOrder());
 
     /**
      * Конструктор, який ініціалізує об'єкт з готовими даними.
@@ -210,7 +124,7 @@ public class BasicDataOperationUsingMap {
         long timeStart = System.nanoTime();
 
         hashtable = hashtable.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
+            .sorted(Map.Entry.comparingByKey(FERRET_COMPARATOR))
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 Map.Entry::getValue,
@@ -309,7 +223,7 @@ public class BasicDataOperationUsingMap {
         long timeStart = System.nanoTime();
 
         linkedHashMap = linkedHashMap.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
+            .sorted(Map.Entry.comparingByKey(FERRET_COMPARATOR))
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 Map.Entry::getValue,
